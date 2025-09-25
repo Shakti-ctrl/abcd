@@ -283,6 +283,7 @@ export const PDFMaster: React.FC<PDFMasterProps> = ({ isVisible, onClose }) => {
   const [shapeSelectorPosition, setShapeSelectorPosition] = useState({ x: 300, y: 150 });
   const [shapeSelectorSize, setShapeSelectorSize] = useState({ width: 450, height: 350 });
   const [selectedShapeForEdit, setSelectedShapeForEdit] = useState<{pageId: string, shapeId: string} | null>(null);
+  const [showRotateAllModal, setShowRotateAllModal] = useState(false);
   const [availableShapes, setAvailableShapes] = useState([
     { type: 'circle', name: '⭕ Circle', icon: '⭕' },
     { type: 'rectangle', name: '⬜ Rectangle', icon: '⬜' },
@@ -1926,6 +1927,15 @@ export const PDFMaster: React.FC<PDFMasterProps> = ({ isVisible, onClose }) => {
     }));
   };
 
+  const rotateAllPages = (direction: 'left' | 'right') => {
+    setPages(prev => prev.map(page => {
+      const rotation = direction === 'right' 
+        ? (page.rotation + 90) % 360 
+        : (page.rotation - 90 + 360) % 360;
+      return { ...page, rotation };
+    }));
+  };
+
   const toggleLandscapeMode = (pageId: string) => {
     const targetPage = pages.find(page => page.id === pageId);
     if (!targetPage) return;
@@ -2587,6 +2597,101 @@ export const PDFMaster: React.FC<PDFMasterProps> = ({ isVisible, onClose }) => {
         </div>
       )}
 
+      {/* RotateAll Modal */}
+      {showRotateAllModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(0, 20, 40, 0.95), rgba(0, 40, 80, 0.9))',
+            border: '2px solid rgba(255, 165, 0, 0.3)',
+            borderRadius: '16px',
+            padding: '32px',
+            maxWidth: '400px',
+            width: '90%'
+          }}>
+            <h3 style={{ color: '#FFA500', textAlign: 'center', marginBottom: '24px' }}>
+              🔄 Rotate All Pages
+            </h3>
+            <p style={{ color: 'rgba(255, 255, 255, 0.8)', textAlign: 'center', marginBottom: '24px', fontSize: '14px' }}>
+              Choose rotation direction for all {pages.length} pages:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <button
+                onClick={() => {
+                  rotateAllPages('left');
+                  setShowRotateAllModal(false);
+                }}
+                style={{
+                  background: 'linear-gradient(45deg, #2196F3, #1976D2)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '16px 24px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px'
+                }}
+              >
+                ↺ Rotate Left
+              </button>
+
+              <button
+                onClick={() => {
+                  rotateAllPages('right');
+                  setShowRotateAllModal(false);
+                }}
+                style={{
+                  background: 'linear-gradient(45deg, #4CAF50, #45a049)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '16px 24px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px'
+                }}
+              >
+                ↻ Rotate Right
+              </button>
+
+              <button
+                onClick={() => setShowRotateAllModal(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Input Rearrange Modal - exact same as cropper */}
       {rearrangeInput !== '' && (
         <div style={{
@@ -2810,6 +2915,20 @@ export const PDFMaster: React.FC<PDFMasterProps> = ({ isVisible, onClose }) => {
                 }}
               >
                 {circlingMode ? '⭕ Circling ON' : '⭕ Circling'}
+              </button>
+              <button
+                onClick={() => setShowRotateAllModal(true)}
+                style={{
+                  background: 'rgba(255, 165, 0, 0.2)',
+                  border: '1px solid rgba(255, 165, 0, 0.3)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  color: '#FFA500',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                🔄 RotateAll
               </button>
               {getGroupCount() > 0 && (
                 <button
